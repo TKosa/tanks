@@ -39,21 +39,22 @@ class Tank{
 		var down = false;
 		
 		if(this.upPressed)
-		if(this.isValidPosition([this.x,this.y-this.move_speed])) {up=true;}
+		new_location[1]-=this.move_speed;
 		
 		if(this.downPressed)
-		if(this.isValidPosition([this.x,this.y+this.move_speed])){down=true;}
+		new_location[1]+=this.move_speed;
 
 		if(this.rightPressed)
-		if(this.isValidPosition([this.x+this.move_speed,this.y])){right=true;}
+		new_location[0]+=this.move_speed;
 
 		if(this.leftPressed)
-		if(this.isValidPosition([this.x-this.move_speed,this.y])){left=true;}
+		new_location[0]-=this.move_speed;
 
-		if(up){this.y-=this.move_speed}
-		if(down){this.y+=this.move_speed}
-		if(right){this.x+=this.move_speed}
-		if(left){this.x-=this.move_speed}
+		if(!this.maze.doesRectCollide([new_location[0],new_location[1],this.width,this.height])){
+			this.x=new_location[0];
+			this.y=new_location[1];
+		}
+
 	}
 	
 	
@@ -67,14 +68,10 @@ class Tank{
 
 		if(x<square.x+square.wall_thiccness){if(square.west){return false;}}
 		if(x+this.width>square.x+square.width){if(square.east){return false;}}
-		if(y<square.y+square.wall_thiccness){
-			if(square.north){return false;}
-			
-
-		}
+		if(y<square.y+square.wall_thiccness){if(square.north){return false;}}
 		if(y+this.height>square.y+square.height){if(square.south){return false;}}
 
-
+	
 
 		return true
 

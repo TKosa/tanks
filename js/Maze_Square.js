@@ -59,9 +59,9 @@ class Maze {
 		}
 		
 	}
-	//checks if y-coordinate 
+	
 	getSquareAtXY(ar){
-		if(x<0||y<0||x>this.width||y>this.height){throw "Tank outside of Maze Exception"}
+		if(x<0||y<0||x>this.width||y>this.height){return -1;}
 		var x=ar[0];
 		var y=ar[1];
 		return this.squares[Math.floor(y/this.height * this.num_of_rows)][Math.floor(x/this.width * this.num_of_columns)]
@@ -72,6 +72,25 @@ class Maze {
 		var row = this.squares[rnd_row_num];
 		var rnd_square = row[Math.floor(Math.random()*row.length)];
 		return rnd_square.getCenter();
+	}
+	
+	
+	//Check if a rectangle collides with (a wall in) the maze
+	doesRectCollide(rect){
+		var square = this.getSquareAtXY([rect[0],rect[1]]);
+		var nearby_squares = square.getNeighbours().concat([square]);
+		var nearby_walls = [];
+		nearby_squares.forEach(function(e){
+			e.getWalls().forEach(function(el){
+				nearby_walls.push(el);
+			});
+		});
+		var collides=false;
+		nearby_walls.forEach(function(e){
+			if(doRectsOverlap(rect,e)){collides=true;}
+		})
+		return collides;
+
 	}
 }
 	
@@ -100,19 +119,12 @@ class Square {
 	}
 	draw(){
 		//local aliases for legibility
-		var w=this.width;
-		var h=this.height;
-		var wt=this.wall_thiccness;
+		ctx.fillStyle=this.colour;
+		this.getWalls().forEach(function(e){
+			ctx.fillRect(e[0],e[1],e[2],e[3]);
+		});
 
-		ctx.fillStyle=this.colour
-		if(this.north)
-		ctx.fillRect(this.x,this.y,w,wt);
-		if(this.west)
-		ctx.fillRect(this.x,this.y,wt,h);
-		if(this.east)
-		ctx.fillRect(this.x+w,this.y,wt,h);
-		if(this.south)
-		ctx.fillRect(this.x,this.y+h,w+wt,wt);
+		
 	}
 	removeBorder(square){
 		if(this.row==square.row){
@@ -138,6 +150,7 @@ class Square {
 
 		}
 	}
+	//Returns neighbouring squares
 	getNeighbours(){	
 		var neighbours=[]
 		if(this.col>0){neighbours.push(this.maze.squares[this.row][this.col-1]);}
@@ -150,6 +163,20 @@ class Square {
 	//returns [x,y]
 	getCenter(){
 		return [ (this.col+1/2)*this.width , (this.row+1/2)*this.height ]
+	}
+	//returns list of walls (rectangles [x,y,width,height])
+	getWalls(){
+		var w=this.width;
+		var h=this.height;
+		var wt=this.wall_thiccness;
+
+		var walls=[];
+		if (this.north)walls.push([this.x,this.y,this.width,this.wall_thiccness]);
+		if (this.west) walls.push([this.x,this.y,wt,h]);
+		if(this.east)  walls.push([this.x+w,this.y,wt,h]);
+		if(this.south) walls.push([this.x,this.y+h,w+wt,wt]);
+
+		return walls;
 	}
 }
 
