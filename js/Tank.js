@@ -31,29 +31,28 @@ class Tank{
 		ctx.fillStyle=this.colour;
 		ctx.fillRect(this.x,this.y,this.width,this.height);
 
-		var new_location = [this.x,this.y];
-
-		var up = false;
-		var right = false;
-		var left = false;
-		var down = false;
+		var x=this.x;
+		var y=this.y;
+		var ms=this.move_speed;
 		
-		if(this.upPressed)
-		new_location[1]-=this.move_speed;
-		
-		if(this.downPressed)
-		new_location[1]+=this.move_speed;
+		if(this.upPressed){this.tryMovingTo(this.x,this.y-this.move_speed);}
+		if(this.rightPressed){this.tryMovingTo(this.x+this.move_speed,this.y);}
+		if(this.downPressed){this.tryMovingTo(this.x,this.y+this.move_speed);}
+		if(this.leftPressed){this.tryMovingTo(this.x-this.move_speed,this.y);}
 
-		if(this.rightPressed)
-		new_location[0]+=this.move_speed;
+	
 
-		if(this.leftPressed)
-		new_location[0]-=this.move_speed;
 
-		if(!this.maze.doesRectCollide([new_location[0],new_location[1],this.width,this.height])){
-			this.x=new_location[0];
-			this.y=new_location[1];
+	}
+
+	
+	//Tries to move the tank to x,y. Will fail if maze.doesRectCollide(tank) returns false.
+	tryMovingTo(x,y){
+		if(!this.maze.doesRectCollide([x,y,this.width,this.height])){
+			this.x=x;
+			this.y=y;
 		}
+
 
 	}
 	
