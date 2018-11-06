@@ -39,12 +39,12 @@ class Maze {
 			});
 		});
 
-		var mock_square=new Square(this,-1,-1); //Needed for visiting algorithm
-		var ENTRY_SQUARE=maze.squares[0][0];
-		this.visit(mock_square,ENTRY_SQUARE);
+		var entry_square=this.squares[0][0];
+		this.visit(new Square(this,-1,-1),this.getRandomSquare());
 		
 	}
-	//Helper for randomize. 
+	
+	//Used in randomize. Visiting square b from a means removing the border between a-b and visiting all unvisited neighbours (in a random order). 
 	visit(old_square,new_square){
 		old_square.removeBorder(new_square);
 		new_square.visited=true;
@@ -57,21 +57,20 @@ class Maze {
 				this.visit(new_square,neighbours[i]);
 			}
 		}
-		
 	}
 	
-	getSquareAtXY(ar){
+	getSquareAtXY(pos){
 		if(x<0||y<0||x>this.width||y>this.height){return -1;}
-		var x=ar[0];
-		var y=ar[1];
+		var x=pos[0];
+		var y=pos[1];
 		return this.squares[Math.floor(y/this.height * this.num_of_rows)][Math.floor(x/this.width * this.num_of_columns)]
 	}
 
-	getRandomXYLocation(){
+	getRandomSquare(){
 		var rnd_row_num = Math.floor(Math.random()*this.squares.length);
 		var row = this.squares[rnd_row_num];
 		var rnd_square = row[Math.floor(Math.random()*row.length)];
-		return rnd_square.getCenter();
+		return rnd_square;
 	}
 	
 	
