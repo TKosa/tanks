@@ -15,6 +15,7 @@ class Tank{
 		this.width=maze.width/maze.num_of_columns/3;
 		this.height=maze.height/maze.num_of_rows/3;
 		this.rotation=0;
+		this.bullets=[];
 
 		var o=this.maze.squares[0][0];
 		this.move_speed=MOVE_SPEED *Math.min(o.width,o.height)/60;
@@ -25,18 +26,25 @@ class Tank{
 		this.rightPressed=false;
 		this.downPressed=false;
 		this.leftPressed=false;
+		this.shooting=false;
 
 
 		document.addEventListener("keydown", this.keyDownHandler.bind(this), false);
 		document.addEventListener("keyup", this.keyUpHandler.bind(this), false);
+		document.addEventListener("keypress",this.keyPressHandler.bind(this),false);
 
 	}
 
 
 	draw(){
 		this.handleMovement();
+		this.handleBullets();
+		this.bullets.forEach(function(e){e.draw();})
+
+
+
+		//Drawing
 		ctx.save();
-		
 		ctx.translate( this.x+this.width/2, this.y+this.height/2 );
 		ctx.rotate(this.rotation);
 
@@ -51,10 +59,16 @@ class Tank{
 		
 	}
 
-	loadImage(img_element){
-		this.img=img_element;
-	}
+	handleBullets(){
+		if(this.shooting){
+			this.shooting=false;
+			var new_bullet = new Bullet(this,[BULLET_SPEED*Math.sin(this.rotation),BULLET_SPEED*-Math.cos(this.rotation)],this.x+this.width/2,this.y+this.height/2);
+			this.bullets.push(new_bullet);
+			
 
+		}
+	}
+	
 
 	//Called every iteration of draw. Checks to see if buttons are pressed and moves tank accordingly.
 	handleMovement(){
@@ -75,16 +89,7 @@ class Tank{
 		if(this.leftPressed){this.rotation-=this.rotation_speed;}
 	}
 
-	originalMovement(){
-		var x=this.x;
-		var y=this.y;
-		var ms=this.move_speed;
-
-		if(this.upPressed){this.tryMovingTo([this.x,this.y-this.move_speed]);}
-		if(this.rightPressed){this.tryMovingTo([this.x+this.move_speed,this.y]);}
-		if(this.downPressed){this.tryMovingTo([this.x,this.y+this.move_speed]);}
-		if(this.leftPressed){this.tryMovingTo([this.x-this.move_speed,this.y]);}
-	}
+	
 
 	
 	//Helper for handleMovement(). Tries to move the tank to x,y. Will fail if maze.doesRectCollide(tank) returns false.
@@ -97,9 +102,11 @@ class Tank{
 			this.y=y;
 		}
 	}
+
+	keyPressHandler(e){
+		if(e.key == this.controls[4]){this.shooting=true;}
+	}
 	
-		
-	//ar=[x,y]
 	
 	keyDownHandler(e){
 	
@@ -107,7 +114,9 @@ class Tank{
 		if(e.key == this.controls[1]){this.rightPressed=true;}
 		if(e.key == this.controls[2]){this.downPressed=true;}
 		if(e.key == this.controls[3]){this.leftPressed=true;}
+
 	}
+
 
 	keyUpHandler(e){
 
@@ -115,7 +124,31 @@ class Tank{
 		if(e.key == this.controls[1]){this.rightPressed=false;}
 		if(e.key == this.controls[2]){this.downPressed=false;}
 		if(e.key == this.controls[3]){this.leftPressed=false;}
+
 	}
 
-}
 
+	loadImage(img_element){
+		this.img=img_element;
+	}
+
+	//Legacy code, may be used for buffs/debuffs
+	originalMovement(){
+		var x=this.x;
+		var y=this.y;
+		var ms=this.move_speed;
+
+		if(this.upPressed){this.tryMovingTo([this.x,this.y-this.move_speed]);}
+		if(this.rightPressed){this.tryMovingTo([this.x+this.move_speed,this.y]);}
+		if(this.downPressed){this.tryMovingTo([this.x,this.y+this.move_speed]);}
+		if(this.leftPressed){this.tryMovingTo([this.x-this.move_speed,this.y]);}
+	}
+
+	destroy(){
+		this.width=10;
+		this.height=10;
+		this.move_speed=0;
+	}
+
+
+}
