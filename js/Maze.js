@@ -20,6 +20,8 @@ class Maze {
 			squares.push(row);
 		}
 		this.squares=squares;
+
+		this.randomize();
 	}
 	draw(){
 		ctx.fillStyle="black";
