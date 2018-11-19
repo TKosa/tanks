@@ -54,6 +54,7 @@ class Tank{
 		else{
 			ctx.fillStyle=this.colour;
 			ctx.fillRect(-this.width/2,-this.height/2,this.width,this.height);
+			ctx.fillRect(-this.width/10,0,this.width/5,-this.height/1.2)
 		}
 		ctx.restore();
 		
