@@ -13,6 +13,7 @@ class Bullet{
 		this.y=y;
 
 		this.radius=radius;
+		this.bounces=0;
 	}
 
 
@@ -40,6 +41,7 @@ class Bullet{
 		}
 		else{
 			this.direction[0]*=-1;
+			this.bounces+=1;
 		}
 
 		if(!this.tank.maze.doesRectCollide([this.x-this.radius,this.y-this.radius + this.direction[1], this.radius,this.radius])){
@@ -47,24 +49,21 @@ class Bullet{
 		}
 		else{
 			this.direction[1]*=-1;
+			this.bounces+=1;
 		}
+		if(this.bounces>=BOUNCE_LIMIT){this.tank.bullets.splice(this,1);}
 	}
 
 	handleTankCollisions(){
-		this.tank.maze.tanks.forEach(function(tank){
-
-			//Tanks cannot shoot themselves
-			if(!(tank==this.tank)){
-
-				//Check if bullet and tank overlaps
-				if(doRectsOverlap([tank.x,tank.y,tank.width,tank.height],[this.x-this.radius,this.y-this.radius,this.radius*2,this.radius*2])){
-					
+		for(var i=0;i<this.tank.maze.tanks.length;i++)
+			{
+			var tank = this.tank.maze.tanks[i];
+			if(tank==this.tank && FRIENDLY_FIRE==false){continue;} 
+			if(doRectsOverlap([tank.x,tank.y,tank.width,tank.height],[this.x-this.radius,this.y-this.radius,this.radius*2,this.radius*2]))
+				{
 					tank.destroy();
-					tank.maze.tanks.splice(tank.maze.tanks.indexOf(tank),1);
-					
 				}
 			}
-		},this);
 	}
 
 	
