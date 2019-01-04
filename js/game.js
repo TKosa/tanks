@@ -6,44 +6,53 @@ var wall_thiccness=4;
 var MOVE_SPEED=3;
 var ROTATION_SPEED=9/100;
 var BULLET_SPEED=3;
+var PREGAME_BORDER_WIDTH = 5;
+var SECONDS_BETWEEN_ROUNDS = 3;
+var FRIENDLY_FIRE = false;
+var BULLET_LIMIT =7 ;
+var BOUNCE_LIMIT = 7;
+var POWERUP_INTERVAL = 2000;
+var POWERUP_LIMIT = 3;
+var POWERUP_DURATION = 10000;
 
 
 
 //Global variables
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
-var maze = new Maze(num_of_rows,num_of_columns,canvas.width,canvas.height,wall_thiccness);
-var pregame = new Pregame();
-
-
+var pregame = new Pregame(canvas.height*3/4);
+var main_object = pregame;
 
 
 function draw(){
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	//maze.draw();
-	pregame.draw();
-	
+	main_object.main();
  	requestAnimationFrame(draw);
 };
 
 
-function main(){
+function setup(){
 
-canvas.addEventListener('click', function(event) {
-    var x = event.pageX - canvas.offsetLeft,
-        y = event.pageY - canvas.offsetTop;
+	canvas.addEventListener('click', function(event) 
+		{
+	    if(main_object.onclick!=undefined){
+	    	var x = event.pageX - canvas.offsetLeft;
+	       	var y = event.pageY - canvas.offsetTop;
+			main_object.onclick(x,y);
+			}
+		}, false);
 
-   	pregame.onclick(x,y);
+	addEventListener("keydown",function(event)
+		{
+			if(main_object.keyDownHandler!=undefined){
+				main_object.keyDownHandler(event.key);
+			}
+		
+		},false);
 
-}, false);
-
-
-// t =new Tank(20,20,maze,["w","d","s","a","x","z"],"blue");
-// t2=new Tank(20,20,maze,["ArrowUp","ArrowRight","ArrowDown","ArrowLeft","n","m"],"green");
-
-// var tank_img = document.getElementById("tank");
-// t.loadImage(tank_img);
-
-draw();
+	draw();
 };
-main();
+
+
+
+setup();

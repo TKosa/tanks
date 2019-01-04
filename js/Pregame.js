@@ -1,167 +1,192 @@
 class Pregame
 	{
-
 	constructor(height)
 		{
-		//List of TankPanels
-		this.panels = [];
-		this.height = canvas.height;
-		this.width = canvas.width;
-		this.focus = null;
-		this.addStartPanel();
-		this.addPanelToMakePanels();
-		this.updatePanelHorizontals();
-		this.colour_templates = ["Lime","cyan","darkorange","Red","Green","#0000FF"];
-		this.controls_templates = [
-		["ArrowUp","ArrowRight","ArrowDown","ArrowLeft","1","2"]
-		,["w","d","s","a","f","g"]
-		,["y","j",'h','g','k','l']
-		];
+			//List of TankPanels
+			this.start_panel=new StartPanel("red",this);
+			this.tank_panels = [];
+			this.height = canvas.height;
+			this.width = canvas.width;
+			this.focus = null;
+			
+		
+			this.colour_templates = ["Lime","cyan","darkorange","Red","Green","#0000FF"];
+			this.controls_templates = [
+			["ArrowUp","ArrowRight","ArrowDown","ArrowLeft","1","2"]
+			,["w","d","s","a","f","g"]
+			,["y","j",'h','g','k','l']
+			];
 
 		}
 
-	main(){
-		this.draw();
-	}
 
-	draw(){this.panels.forEach(function(panel){panel.draw();});}
-
-
-	addPanel(panel)
+	main()
 		{
-		this.panels.push(panel);
-		this.updatePanelHorizontals();
+			this.draw();
 		}
 
 
-	removePanel(panel)
+	draw()
 		{
-		this.panels.splice(this.panels.indexOf(panel),1);
-		this.updatePanelHorizontals();
+			this.start_panel.draw();
+			this.tank_panels.forEach(function(tank_panel){tank_panel.draw();});
+		}
+
+
+	addTankPanel(tank_panel)
+		{
+			this.tank_panels.push(tank_panel);
+			this.updatePanelHorizontals();
+		}
+
+
+	removeTankPanel(tank_panel)
+		{
+			this.tank_panels.splice(this.tank_panels.indexOf(tank_panel),1);
+			this.updatePanelHorizontals();
 		}
 
 
 	updatePanelHorizontals()
 		{
-		var len = this.panels.length;
-		var width = canvas.width/(len-1); 
-		for(var i=1;i<len;i++)
-			{
-			var panel = this.panels[i];
-			panel.x=(i-1)*width;
-			panel.width=width;
-			panel.buttons.forEach(function(e){e.update()});
-			}
+			//Set border width of start_panel
+			if(this.tank_panels.length==0)
+				{
+				this.start_panel.east_border=PREGAME_BORDER_WIDTH;
+				return;
+				}
+			this.start_panel.east_border=PREGAME_BORDER_WIDTH/2;
+		
+			//Set width and border widths of tank_panels
+			var width = (canvas.width-this.start_panel.width)/(this.tank_panels.length); 
+			for(var i=0;i<this.tank_panels.length;i++)
+				{	
+						var tank_panel = this.tank_panels[i];
+					tank_panel.x=this.start_panel.width +(i)*width;
+					tank_panel.width=width;
+					tank_panel.buttons.forEach(function(b){b.update()});
+					tank_panel.east_border=PREGAME_BORDER_WIDTH/2;
+						
+				}
+			this.tank_panels[this.tank_panels.length-1].east_border=PREGAME_BORDER_WIDTH;
+		
 		}
+
+
 
 	//Look through all elements to see if any of them were at the click location
 	onclick(x,y)
 		{
-		this.panels.forEach(function(panel)
-			{
-			panel.buttons.forEach(function(button)
+			var all_panels = this.tank_panels.concat([this.start_panel]);
+			all_panels.forEach(function(tank_panel)
 				{
-		
-					if(doRectsOverlap([x,y,1,1],button.get_as_Rect()))
-						{
-						button.onclick();
-						return;
-						}
+				tank_panel.buttons.forEach(function(button)
+					{
+				
+						if(doRectsOverlap([x,y,1,1],button.get_as_Rect()))
+							{
+							button.onclick();
+							return;
+							}
+					});
 				});
-			});
 		}
 
-	
-	addStartPanel()
+
+	keyDownHandler(e)
 		{
-		var start_panel = new Panel("blue");
-		start_panel.y=this.height*4/5;
-		start_panel.height=this.height*1/5;
-		start_panel.width = canvas.width;
-		this.addPanel(start_panel);
 
-		var start_button = new Button(start_panel,0,0,"Start");
-		start_button.onclick = this.start.bind(this);
-		start_button.center_horizontally();
-		start_button.center_vertically();
-		start_panel.addButton(start_button);
-		}
-
-	addPanelToMakePanels()
-		{
-		var panel = new Panel('red');
-		panel.x = PREGAME_BORDER_WIDTH;
-		var add_button = new Button(panel,0,0,"Add Tank");
-		add_button.onclick = function(){
-			var current_template = pregame.panels.length-2;
-			pregame.addPanel(new TankPanel(pregame.colour_templates[current_template],pregame.controls_templates[current_template]));
-			};
-		add_button.y=add_button.panel.height/2-add_button.height/2;
-		add_button.text="Add Tank";
-		panel.buttons=[add_button];
-		this.addPanel(panel);
-		}
-
-
-	keyDownHandler(e){
-
-		if(this.focus==null){return;}
-		this.focus.keyDownHandler(e);
-		}
-
-	start()
-		{
-		var maze = new Maze(5,7,canvas.width,canvas.height*4/5,wall_thiccness);
-	
-		//Instantiate tanks from the input in the panels 
-		for(var i=2;i<this.panels.length;i++)
-			{
-			var panel = this.panels[i];
-			var cb = this.panels[i].buttons;
-			var controls = [cb[1].key, cb[2].key, cb[3].key, cb[4].key, cb[5].key, cb[6].key];
-			var rnd_pos = maze.getRandomSquare().getCenter();
-		
-			var tank = new Tank (0,0,maze,controls,panel.colour);
-			maze.placeObject(tank);
-			}
-
-		
-		main_object = maze;
-		}
+			if(this.focus==null){return;}
+			this.focus.keyDownHandler(e);
+		}	
 	}	
 
 
 //Panel to change controls
 class Panel
 	{
-
 	constructor(colour)
 		{
-		this.width = 0;
-		this.height = canvas.height*4/5;
+		this.width = canvas.width/5; //this gets overwritten right away by the calling code, so initial value doesn't matter
+		this.height = canvas.height;
 		this.x=0;
 		this.y=0;
 		this.colour = colour;
-		this.lineWidth=PREGAME_BORDER_WIDTH;
 		this.buttons=[];
+
+		this.north_border=PREGAME_BORDER_WIDTH;
+		this.east_border=PREGAME_BORDER_WIDTH/2;
+		this.south_border=PREGAME_BORDER_WIDTH;
+		this.west_border=PREGAME_BORDER_WIDTH/2;
 		}
+
 
 	addButton(button)
 		{
 		this.buttons.push(button);
 		}
 
+
 	draw()
 		{
-		ctx.fillStyle = this.colour;
+
+		ctx.fillStyle = "black";
 		ctx.fillRect(this.x,this.y,this.width,this.height);
 
-		ctx.strokeStyle = "black";
-		ctx.lineWidth=this.lineWidth;
-		ctx.strokeRect(this.x,this.y,this.width-3,this.height)
+		ctx.fillStyle = this.colour;
+		ctx.fillRect(this.x+this.west_border, this.y+this.north_border,this.width-this.west_border-this.east_border,this.height-this.north_border-this.south_border);
+
+		
 		this.buttons.forEach(function(b){b.draw()});	
 		}
-	
+	}
+
+
+class StartPanel extends Panel 
+ 	{
+ 	constructor(colour,pregame)
+  		{
+	 	super(colour);
+		this.pregame=pregame;
+		this.west_border=PREGAME_BORDER_WIDTH;
+		this.east_border=PREGAME_BORDER_WIDTH;
+
+		var start_button = new Button(this,0,0,"Start");
+		start_button.onclick = this.start.bind(this.pregame);
+		start_button.center_horizontally();	
+		start_button.y = canvas.height * 9/20;
+		this.addButton(start_button);
+
+		var add_button = new Button(this,0,0,"Add Tank");
+		add_button.onclick = function()
+			{
+			var pregame=this.panel.pregame;
+			var current_template = pregame.tank_panels.length;
+			pregame.addTankPanel(new TankPanel(pregame.colour_templates[current_template],pregame.controls_templates[current_template]));
+			};
+		add_button.y=canvas.height * 11/20;
+		add_button.center_horizontally();
+		this.addButton(add_button);
+	  	}
+
+	//Starts the game by making a maze and populating it with tanks based on tank_panel attributes
+ 	start()
+	 	{
+		var maze = new Maze(5,7,canvas.width,canvas.height*4/5,wall_thiccness);
+		main_object = maze;
+
+		//Instantiate tanks from the input in the panels 
+		for(var i=0;i<this.tank_panels.length;i++)
+			{
+			var panel = this.tank_panels[i];
+			var cb = panel.buttons;
+			var controls = [cb[1].key, cb[2].key, cb[3].key, cb[4].key, cb[5].key, cb[6].key];
+			var rnd_pos = maze.getRandomSquare().getCenter();
+			
+			var tank = new Tank (0,0,maze,controls,panel.colour);
+			maze.placeObject(tank);
+			}
+		}
 	}
 
 
@@ -170,6 +195,7 @@ class Button
 	constructor(panel,x,y,text="")
 		{
 		this.height = 20;
+		this.width=panel.width/1.5;
 		this.y=y;
 		this.text=text;
 		this.panel=panel;
@@ -183,8 +209,8 @@ class Button
 	//Called when a new panel is added, and things need to get resized
 	update()
 		{
-		this.width=this.panel.width/1.2;
-		this.x=this.panel.x+this.panel.width/2-this.width/2+PREGAME_BORDER_WIDTH;
+		this.width=this.panel.width/1.5;
+		this.x=this.panel.x+this.panel.width/2-this.width/2;
 		}
 	
 	draw()
@@ -205,7 +231,6 @@ class Button
 
 	center_vertically()
 		{
-		this.height=this.panel.height/2;
 		this.y=this.panel.y+this.panel.height/2-this.height/2;
 		}
 	}
@@ -217,7 +242,8 @@ class TankPanel extends Panel
 		{
 		super(colour);
 		var delete_button = new Button(this,0,this.height/12,"delete");
-		delete_button.onclick = function(){
+		delete_button.onclick = function()
+			{
 			var index = pregame.panels.indexOf(this);
 			pregame.panels.splice(index,1);
 			pregame.updatePanelHorizontals();
@@ -259,6 +285,7 @@ class setControlsButton extends Button
 	
 	draw()
 		{
+
 		if(pregame.focus == this)
 			{
 			ctx.fillStyle = "red";
@@ -278,6 +305,6 @@ class setControlsButton extends Button
 		ctx.textAlign = "center";
 		ctx.font = "10px Arial";
 		ctx.fillText(this.key ? this.control + this.key : this.control ,this.x+this.width/2,this.y+this.height/1.5);	
-		
+
 		}
 	}
