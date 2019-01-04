@@ -20,6 +20,10 @@ class Pregame
 
 		}
 
+	main(){
+		this.draw();
+	}
+
 	draw(){this.panels.forEach(function(panel){panel.draw();});}
 
 
@@ -67,20 +71,7 @@ class Pregame
 			});
 		}
 
-	addPanelToMakePanels()
-		{
-		var panel = new Panel('red');
-		var add_button = new Button(panel,0,0,"Add Tank");
-		add_button.onclick = function(){
-			var current_template = pregame.panels.length-2;
-			pregame.addPanel(new TankPanel(pregame.colour_templates[current_template],pregame.controls_templates[current_template]));
-			};
-		add_button.y=add_button.panel.height/2-add_button.height/2;
-		add_button.text="Add Tank";
-		panel.buttons=[add_button];
-		this.addPanel(panel);
-		}
-
+	
 	addStartPanel()
 		{
 		var start_panel = new Panel("blue");
@@ -96,9 +87,26 @@ class Pregame
 		start_panel.addButton(start_button);
 		}
 
-	handleKeydown(key){
+	addPanelToMakePanels()
+		{
+		var panel = new Panel('red');
+		panel.x = PREGAME_BORDER_WIDTH;
+		var add_button = new Button(panel,0,0,"Add Tank");
+		add_button.onclick = function(){
+			var current_template = pregame.panels.length-2;
+			pregame.addPanel(new TankPanel(pregame.colour_templates[current_template],pregame.controls_templates[current_template]));
+			};
+		add_button.y=add_button.panel.height/2-add_button.height/2;
+		add_button.text="Add Tank";
+		panel.buttons=[add_button];
+		this.addPanel(panel);
+		}
+
+
+	keyDownHandler(e){
+
 		if(this.focus==null){return;}
-		this.focus.handleKeydown(key);
+		this.focus.keyDownHandler(e);
 		}
 
 	start()
@@ -113,7 +121,8 @@ class Pregame
 			var controls = [cb[1].key, cb[2].key, cb[3].key, cb[4].key, cb[5].key, cb[6].key];
 			var rnd_pos = maze.getRandomSquare().getCenter();
 		
-			var tank = new Tank (rnd_pos[0],rnd_pos[1],maze,controls,panel.colour);
+			var tank = new Tank (0,0,maze,controls,panel.colour);
+			maze.placeObject(tank);
 			}
 
 		
@@ -175,7 +184,7 @@ class Button
 	update()
 		{
 		this.width=this.panel.width/1.2;
-		this.x=this.panel.x+this.panel.width/2-this.width/2;
+		this.x=this.panel.x+this.panel.width/2-this.width/2+PREGAME_BORDER_WIDTH;
 		}
 	
 	draw()
@@ -237,7 +246,7 @@ class setControlsButton extends Button
 		this.key = key; //e.g. spacebar	
 		}
 
-	handleKeydown(key)
+	keyDownHandler(key)
 		{
 		 this.key=key;
 		 this.text = this.control + key;

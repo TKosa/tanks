@@ -12,6 +12,7 @@ class Maze
 		this.height=height-wall_thiccness;
 		this.wall_thiccness=wall_thiccness;
 		this.tanks=[];
+		this.powerups=[];
 		this.message = "Shoot the opposing tanks!"
 		this.num_of_destroyed_tanks=0;
 
@@ -28,23 +29,24 @@ class Maze
 		this.squares=squares;
 
 		this.randomize();
+		setTimeout(this.addPowerupAndRepeat.bind(this),POWERUP_INTERVAL);
 		}
 
+	main()
+	{
+		this.tanks.forEach(function(tank){tank.main();});
+		this.draw();
+
+	}
 
 	draw()
 		{
 
 		ctx.fillStyle="black";
 
-		this.squares.forEach(function(element){
-			element.forEach(function(e){
-				e.draw();
-			});
-		});
-
-		this.tanks.forEach(function(e){
-			e.draw();
-			});
+		this.squares.forEach(function(row){row.forEach(function(square){square.draw();});});
+		this.tanks.forEach(function(tank){if(!tank.is_dead) tank.draw();});
+		this.powerups.forEach(function(powerup){powerup.draw();});
 
 		//Draw bottom panel
 		var x_padding = 5;
@@ -69,11 +71,14 @@ class Maze
 		ctx.fillStyle = "black";
 		ctx.fillText(this.message, canvas.width/2, canvas.height-20);
 		
+		}
 	
 
-
-		}
-
+	keyDownHandler(event){
+		this.tanks.forEach(function(tank){
+			tank.keyDownHandler(event);
+		});
+	}
 
 	randomize()
 		{
@@ -150,15 +155,19 @@ class Maze
 		return collides;
 
 		}
+	
+
 	isOutOfBounds(pos)
 		{
 		if(pos[0]<=0 || pos[0]>=this.width || pos[1]<=0 || pos[1]>=this.height){return true;}
 		return false;
 		}
 
+	
 	tankDestroyed()
 		{
 		this.num_of_destroyed_tanks+=1;
+
 		if (this.num_of_destroyed_tanks==this.tanks.length-1)
 			{
 
@@ -170,12 +179,8 @@ class Maze
 							tank.score+=1;
 							this.restart_helper(SECONDS_BETWEEN_ROUNDS);
 							return;
-						}
-						
-					}
-				
-
-				
+						}			
+					}		
 			}
 		}
 
@@ -192,16 +197,53 @@ class Maze
 			this.message="restart";
 			this.num_of_destroyed_tanks=0;
 			for(var i=0;i<this.tanks.length;i++){
-				var tank = this.tanks[i];
-				tank.is_dead=false;
-				var pos = this.getRandomSquare().getCenter();
-				tank.x=pos[0];
-				tank.y=pos[1];
-				tank.bullets=[];
-				tank.shooting=false;
+				this.tanks[i].restart();
+				
+				
 			}
 
 		}
+
+	//Takes obj with x, y, width and height properties and sets x,y to place it in a valid position
+	placeObject(object)
+		{
+			var square = this.getRandomSquare();
+			var min_x = square.x + square.wall_thiccness * square.west ; 
+			var max_x = square.x + square.width - square.wall_thiccness * square.east - object.width ;
+			var min_y = square.y + square.wall_thiccness * square.north ;
+			var max_y = square.y + square.height - square.wall_thiccness * square.south - object.height;
+
+			object.x = min_x + Math.random()*(max_x-min_x);
+			object.y = min_y + Math.random()*(max_y-min_y);
+		
+		}
+
+	addPowerupAndRepeat()
+		{	
+			if(this.powerups.length >= POWERUP_LIMIT){
+				this.powerups.shift();
+			}
+				
+
+			var powerup = new Powerup(this,0,0,0);
+			powerup.randomize();
+			this.placeObject(powerup);
+			this.addPowerup(powerup);
+			this.message = powerup.getMessage();	
+
+			setTimeout(this.addPowerupAndRepeat.bind(this), POWERUP_INTERVAL, this);
+
+		}
+	addPowerup(powerup){
+		this.powerups.push(powerup);
+	}
+	removePowerup(powerup){
+		this.powerups.splice(this.powerups.indexOf(powerup),1);
+	}
+
+	addTank(tank){
+		this.tanks.push(tank);
+	}
 
 }
 	

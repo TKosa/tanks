@@ -7,3 +7,4 @@ var doRectsOverlap = function(rect1,rect2){
 	if(rect1[1]>rect2[1]+rect2[3]){return false;}
 	return true;
 }
+

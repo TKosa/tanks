@@ -18,8 +18,10 @@ class Tank
 		this.height=maze.height/maze.num_of_rows/3;
 		this.rotation=0; //pointing straight up
 		this.bullets=[];
+		this.bullet_limit=BULLET_LIMIT;
 		this.score=0;
 		this.is_dead=false;
+		
 
 		var o=this.maze.squares[0][0];
 		this.move_speed=MOVE_SPEED *Math.min(o.width,o.height)/60;
@@ -39,14 +41,23 @@ class Tank
 
 		}
 
+	main() 
+	{
+		if(this.is_dead){return;}
+
+		if(this.shouldFire()){ this.fire(this.rotation, BULLET_SPEED); }
+		this.shooting=false;
+
+		this.bullets.forEach(function(bullet){bullet.main();})
+
+		this.handleMovement();
+
+		this.draw();
+	}
 
 	draw()
 		{
-		//Draw and progress bullets. IF tank is alive THEN draw and progress tank.
-		this.handleBullets();
 		this.bullets.forEach(function(e){e.draw();})
-		if(this.is_dead){return;}
-		this.handleMovement();
 		
 		//Drawing
 		ctx.save();
@@ -68,20 +79,26 @@ class Tank
 		
 		}
 	
+	shouldFire(){
+		if (this.shooting && this.bullets.length<this.bullet_limit) {return true;}
+		else {return false;}
+	
+	}
 
-	handleBullets()
-		{
-		if(this.shooting){
-			this.shooting=false;
-			var x_vel = BULLET_SPEED*Math.sin(this.rotation);
-			var y_vel = BULLET_SPEED*-Math.cos(this.rotation);
-			//x,y _pos are at tip of the cannon
-			var x_pos = this.x+this.width/2 + Math.sin(this.rotation)*this.height;
-			var y_pos = this.y+this.height/2 + Math.cos(this.rotation)*-this.height;
-			var new_bullet = new Bullet(this,[x_vel,y_vel],x_pos,y_pos);
-			this.bullets.push(new_bullet);
-			}
-		}
+	fire(rotation,speed){
+		this.fire_helper(rotation,speed);
+	}
+
+	fire_helper(rotation, speed){
+
+		var x_vel = speed*Math.sin(rotation);
+		var y_vel = speed*-Math.cos(rotation);			//x,y _pos are at tip of the cannon
+		var x_pos = this.x+this.width/2 + Math.sin(this.rotation)*this.height;
+		var y_pos = this.y+this.height/2 + Math.cos(this.rotation)*-this.height;
+		var new_bullet = new Bullet(this,[x_vel,y_vel],x_pos,y_pos);			
+		this.bullets.push(new_bullet);
+			
+	}
 	
 
 	//Called every iteration of draw. Checks to see if buttons are pressed and moves tank accordingly.
@@ -168,12 +185,33 @@ class Tank
 		if(this.leftPressed){this.tryMovingTo([this.x-this.move_speed,this.y]);}
 		}
 	
+	onBulletHit(){
+		this.destroy();
+	}
 
 	destroy()
 		{
 		this.is_dead=true;
 		this.maze.tankDestroyed();
 		}
+
+	restart(){
+	
+		this.is_dead=false;
+		var pos = this.maze.getRandomSquare().getCenter();
+		this.x=pos[0];
+		this.y=pos[1];
+		this.bullets=[];
+		this.shooting=false;
+
+	
+		//Restart powerups
+		if(this.powerup_timeout!=undefined){
+			this.undo_powerup();
+			clearTimeout(tank.powerup_timeout);
+			this.powerup_timeout=undefined;
+		}
+	}
 
 
 }
