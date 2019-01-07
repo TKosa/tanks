@@ -4,13 +4,15 @@
 
 class Maze 
 	{
-	constructor(num_of_rows,num_of_columns,width,height,wall_thiccness)
+	constructor(game)
 		{
-		this.num_of_rows=num_of_rows;
-		this.num_of_columns=num_of_columns;
-		this.width=width-wall_thiccness;
-		this.height=height-wall_thiccness;
-		this.wall_thiccness=wall_thiccness;
+		this.game=game;
+		this.num_of_rows=game.num_of_rows;
+		this.num_of_columns=game.num_of_columns;
+		this.wall_thiccness=game.wall_thiccness;
+		this.width=canvas.width-this.wall_thiccness;
+		this.height=canvas.height*4/5-this.wall_thiccness;
+		
 		this.tanks=[];
 		this.powerups=[];
 		this.message = "Shoot the opposing tanks!"
@@ -19,9 +21,9 @@ class Maze
 
 		//2d array
 		var squares=[];
-		for(var r=0;r<num_of_rows;r++){
+		for(var r=0;r<this.num_of_rows;r++){
 			var row=[];
-			for (var c=0;c<num_of_columns;c++){
+			for (var c=0;c<this.num_of_columns;c++){
 				row.push(new Square(this,r,c));
 			}
 			squares.push(row);
@@ -33,11 +35,10 @@ class Maze
 		}
 
 	main()
-	{
-		this.tanks.forEach(function(tank){tank.main();});
-		this.draw();
-
-	}
+		{
+			this.tanks.forEach(function(tank){tank.main();});
+			this.draw();
+		}
 
 	draw()
 		{
@@ -220,7 +221,7 @@ class Maze
 
 	addPowerupAndRepeat()
 		{	
-			if(this.powerups.length >= POWERUP_LIMIT){
+			if(this.powerups.length >= this.game.powerup_limit){
 				this.powerups.shift();
 			}
 				
@@ -231,7 +232,7 @@ class Maze
 			this.addPowerup(powerup);
 			this.message = powerup.getMessage();	
 
-			setTimeout(this.addPowerupAndRepeat.bind(this), POWERUP_INTERVAL, this);
+			setTimeout(this.addPowerupAndRepeat.bind(this), this.game.powerup_interval*1000, this);
 
 		}
 	addPowerup(powerup){
@@ -242,8 +243,10 @@ class Maze
 	}
 
 	addTank(tank){
-		this.tanks.push(tank);
+		this.tanks.push(tank)
 	}
+
+	onclick(x,y){}
 
 }
 	

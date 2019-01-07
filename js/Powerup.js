@@ -8,14 +8,13 @@ class Powerup
 		this.height=10;
 		this.maze=maze;
 		this.effect_no = effect_no;
-		//format for a powerup [name_str, colour_str, fn(tank){powerup_effect(); tank.undo_powerup=fn(){...}}]
+		//format for a powerup [name_str, colour_str, fn(tank){powerup_effect(); tank.undo_powerup=reverse_fn(){}}]
 		this.powerups = [
 			
 			["remove bullet limit"
 			, "blue"
 			,function(tank)
 				{
-					tank.old_should_fire = tank.shouldFire;
 					tank.shouldFire = function() 
 					{
 						if (this.shooting) {return true;}
@@ -70,9 +69,8 @@ class Powerup
 			,function(tank)
 			{
 				draw = function()
-				{
-					//ctx.clearRect(0, 0, canvas.width, canvas.height);
-					main_object.main();
+				{	
+					game.main();
  					requestAnimationFrame(draw);
 				};
 
@@ -81,7 +79,7 @@ class Powerup
 					draw = function()
 					{
 						ctx.clearRect(0, 0, canvas.width, canvas.height);
-						main_object.main();
+						game.main();
  						requestAnimationFrame(draw);
 					};
 

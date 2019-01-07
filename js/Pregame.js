@@ -1,13 +1,17 @@
 class Pregame
 	{
-	constructor(height)
+	constructor(game,height)
 		{
+			this.game=game;
+
 			//List of TankPanels
 			this.start_panel=new StartPanel("red",this);
 			this.tank_panels = [];
 			this.height = canvas.height;
 			this.width = canvas.width;
 			this.focus = null;
+			this.settings = new SettingsPanel(this);
+			this.current_panels = [this.start_panel].concat(this.tank_panels);
 			
 		
 			this.colour_templates = ["Lime","cyan","darkorange","Red","Green","#0000FF"];
@@ -28,21 +32,24 @@ class Pregame
 
 	draw()
 		{
-			this.start_panel.draw();
-			this.tank_panels.forEach(function(tank_panel){tank_panel.draw();});
+			this.current_panels.forEach(function(tank_panel){tank_panel.draw();});
 		}
+
 
 
 	addTankPanel(tank_panel)
 		{
 			this.tank_panels.push(tank_panel);
+			this.current_panels = [this.start_panel].concat(this.tank_panels);
 			this.updatePanelHorizontals();
 		}
 
 
 	removeTankPanel(tank_panel)
 		{
+		
 			this.tank_panels.splice(this.tank_panels.indexOf(tank_panel),1);
+			this.current_panels = [this.start_panel].concat(this.tank_panels);
 			this.updatePanelHorizontals();
 		}
 
@@ -77,19 +84,21 @@ class Pregame
 	//Look through all elements to see if any of them were at the click location
 	onclick(x,y)
 		{
-			var all_panels = this.tank_panels.concat([this.start_panel]);
-			all_panels.forEach(function(tank_panel)
+			this.found_button=false; //local var to stop looking if we found our button
+			this.current_panels.forEach(function(panel)
 				{
-				tank_panel.buttons.forEach(function(button)
+				if(!this.found_button)
+				panel.buttons.forEach(function(button)
 					{
-				
+						if(!this.found_button)
 						if(doRectsOverlap([x,y,1,1],button.get_as_Rect()))
 							{
+						
+							this.found_button=true;
 							button.onclick();
-							return;
 							}
-					});
-				});
+					}.bind(this));
+				}.bind(this));
 		}
 
 
@@ -162,18 +171,31 @@ class StartPanel extends Panel
 			{
 			var pregame=this.panel.pregame;
 			var current_template = pregame.tank_panels.length;
-			pregame.addTankPanel(new TankPanel(pregame.colour_templates[current_template],pregame.controls_templates[current_template]));
+			pregame.addTankPanel(new TankPanel(pregame,pregame.colour_templates[current_template],pregame.controls_templates[current_template]));
 			};
 		add_button.y=canvas.height * 11/20;
 		add_button.center_horizontally();
 		this.addButton(add_button);
+
+		var settings_button = new Button(this,0,0,"Settings");
+		settings_button.onclick = function()
+			{
+				this.pregame.current_panels=[this.pregame.settings];
+			}.bind(this);
+		settings_button.y=canvas.height * 13/20;
+		settings_button.center_horizontally();
+		this.addButton(settings_button);
 	  	}
+
+
+
 
 	//Starts the game by making a maze and populating it with tanks based on tank_panel attributes
  	start()
 	 	{
-		var maze = new Maze(5,7,canvas.width,canvas.height*4/5,wall_thiccness);
-		main_object = maze;
+
+		var maze = new Maze(this.game);
+		this.game.main_object=maze;
 
 		//Instantiate tanks from the input in the panels 
 		for(var i=0;i<this.tank_panels.length;i++)
@@ -196,6 +218,7 @@ class Button
 		{
 		this.height = 20;
 		this.width=panel.width/1.5;
+		this.x=0;
 		this.y=y;
 		this.text=text;
 		this.panel=panel;
@@ -208,6 +231,10 @@ class Button
 	
 	//Called when a new panel is added, and things need to get resized
 	update()
+		{
+		this.resize_horiontals();
+		}
+	resize_horiontals()
 		{
 		this.width=this.panel.width/1.5;
 		this.x=this.panel.x+this.panel.width/2-this.width/2;
@@ -238,16 +265,16 @@ class Button
 
 class TankPanel extends Panel 
 	{
-	constructor(colour="green",assignment=undefined)
+	constructor(pregame,colour="green",assignment=undefined)
 		{
 		super(colour);
+	
+		this.pregame=pregame;
 		var delete_button = new Button(this,0,this.height/12,"delete");
 		delete_button.onclick = function()
 			{
-			var index = pregame.panels.indexOf(this);
-			pregame.panels.splice(index,1);
-			pregame.updatePanelHorizontals();
-			}
+			this.pregame.removeTankPanel(this);
+			}.bind(this);
 		this.addButton(delete_button);
 		delete_button.center_horizontally();
 
@@ -255,38 +282,39 @@ class TankPanel extends Panel
 		var controls = ["up","right","down","left","attack","special"];
 		for (var i=0;i<controls.length;i++)
 			{
-			var button = new setControlsButton(this,0,this.height*(3+i)/12,controls[i],assignment ? assignment[i] : undefined);
+			var button = new SetControlsButton(this,0,this.height*(3+i)/12,controls[i],assignment ? assignment[i] : undefined);
 			button.center_horizontally();
-			this.addButton(button);
+			
 			}
 		}
 	}
 
 
-class setControlsButton extends Button 
+class SetControlsButton extends Button 
 	{
-	constructor(panel,x,y,text,key=undefined)
+	constructor(panel,x,y,text,default_key="")
 		{
-		super(panel,x,y,text+":");
+ 		super(panel,x,y,text+":");
 		this.control=text+": "; //e.g. "attack"
-		this.key = key; //e.g. spacebar	
+		this.key = default_key; //e.g. spacebar	
+		this.panel.addButton(this);
 		}
 
 	keyDownHandler(key)
 		{
-		 this.key=key;
-		 this.text = this.control + key;
+		this.key=key;
+		this.text = this.control + key;
 		}
 
 	onclick()
 		{
-		pregame.focus = this;
+		this.panel.pregame.focus = this;
 		}
 	
 	draw()
 		{
 
-		if(pregame.focus == this)
+		if(this.panel.pregame.focus == this)
 			{
 			ctx.fillStyle = "red";
 			ctx.fillRect(this.x,this.y,this.width,this.height);	
@@ -304,7 +332,99 @@ class setControlsButton extends Button
 		ctx.fillStyle = "black";
 		ctx.textAlign = "center";
 		ctx.font = "10px Arial";
-		ctx.fillText(this.key ? this.control + this.key : this.control ,this.x+this.width/2,this.y+this.height/1.5);	
+		ctx.fillText(this.key ? (this.control + this.key).toString() : this.control.toString() ,this.x+this.width/2,this.y+this.height/1.5);	
 
 		}
 	}
+
+class SetSettingsButton extends SetControlsButton {
+
+	keyDownHandler(key){
+		this.key+=key;
+	}
+
+}
+
+class SettingsPanel extends Panel{
+
+	constructor(pregame)
+		{
+			super("Green");
+			this.width=canvas.width;
+			this.pregame=pregame;
+
+			//back button
+			var back = new Button(this,0,0,"Back");this.back=back;
+			back.y=canvas.height*5/6;
+			back.update();
+			back.onclick = function(){
+				var save_successful = this.save();
+				if (!save_successful){return;}
+				this.pregame.current_panels = [this.pregame.start_panel].concat(this.pregame.tank_panels);
+			}.bind(this);
+			this.addButton(back);
+
+		
+			//Create settings buttons
+			this.settings = [
+			 ["Number of Rows","num_of_rows"]
+			,["Number of Columns","num_of_columns"]
+			,["Movement Speed","move_speed"]
+			,["Friendly Fire","friendly_fire"]
+			,["Number of Bullets","bullet_limit"]
+			,["Time Between Powerups (s)","powerup_interval"]
+			,["Max powerups on screen","powerup_limit"]
+			,["Duration of powerups (s)","powerup_duration"]
+			];
+			this.settings.forEach(function(ar){this.make_button(ar)}.bind(this));
+		
+
+			//Position the buttons on the screen
+			var blen = this.buttons.length;
+			for(var i=1;i<blen;i++)
+				{
+					var button = this.buttons[i];
+					button.y = canvas.height*4/5/(blen-1)*(i-1)+button.height;
+					button.resize_horiontals();
+
+				}
+		}
+
+	save()
+		{
+			return true;
+
+
+		}
+	isPosInt(x){
+		if(isNaN(x)){return false;}
+		if(!Number.isInteger(x) || x<0){return false;}
+		return true;
+	}
+	make_button(ar)
+		{	
+			//Make button a property of SettingsPanel and set its keydown and onclick
+			var text = ar[0];
+			var attribute_name = ar[1];
+			this[attribute_name]=new SetSettingsButton(this,0,0,text);
+			this[attribute_name].key=this.pregame.game[attribute_name].toString();
+			this[attribute_name].onclick = function(){
+				this.panel.pregame.focus=this;
+			};
+			this[attribute_name].keyDownHandler = function(key){
+				if(key=="Backspace"){this.key=this.key.slice(0,-1);return};
+				if(key=="Enter"){this.key="";return}
+				this.key+=key;
+			}
+
+			//Corner case for friendly fire button 
+			if(ar[0]=="Friendly Fire")
+			{
+				this[attribute_name].onclick = function(){this.key= this.key ? false:true}
+			}
+		}
+
+
+
+	
+}

@@ -15,18 +15,55 @@ var POWERUP_INTERVAL = 2000;
 var POWERUP_LIMIT = 3;
 var POWERUP_DURATION = 10000;
 
+class Game{
+	constructor()
+		{
+			this.num_of_rows = 6;
+			this.num_of_columns = 9; 
+			this.wall_thiccness=4;
+			this.speed=1;
+			this.move_speed=3;
+			this.rotation_speed=9;
+			this.bullet_speed=3;
+			this.pregame_border_width = 5;
+			this.seconds_between_rounds = 3;
+			this.friendly_fire = false;
+			this.bullet_limit =7 ;
+			this.bounce_limit = 7;
+			this.powerup_interval = 5;
+			this.powerup_limit = 7;
+			this.powerup_duration = 10;
+
+			this.pregame=new Pregame(this,canvas.height*3/4);
+			this.main_object=this.pregame;
+		}
+	main(){this.main_object.main();}
+	onclick(x,y){this.main_object.onclick(x,y)}
+	keyDownHandler(key){this.main_object.keyDownHandler(key);}
+
+	
+
+
+
+};
+
+class Setting {
+
+}
+
+
 
 
 //Global variables
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
-var pregame = new Pregame(canvas.height*3/4);
-var main_object = pregame;
+
+var game = new Game();
 
 
 function draw(){
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	main_object.main();
+	game.main();
  	requestAnimationFrame(draw);
 };
 
@@ -35,18 +72,18 @@ function setup(){
 
 	canvas.addEventListener('click', function(event) 
 		{
-	    if(main_object.onclick!=undefined){
+	   
 	    	var x = event.pageX - canvas.offsetLeft;
 	       	var y = event.pageY - canvas.offsetTop;
-			main_object.onclick(x,y);
-			}
+			game.onclick(x,y);
+			
 		}, false);
 
 	addEventListener("keydown",function(event)
 		{
-			if(main_object.keyDownHandler!=undefined){
-				main_object.keyDownHandler(event.key);
-			}
+			
+				game.keyDownHandler(event.key);
+			
 		
 		},false);
 

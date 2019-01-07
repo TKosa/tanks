@@ -24,7 +24,7 @@ class Tank
 		
 
 		var o=this.maze.squares[0][0];
-		this.move_speed=MOVE_SPEED *Math.min(o.width,o.height)/60;
+		this.move_speed=maze.game.move_speed*Math.min(o.width,o.height)/60;
 		this.rotation_speed=ROTATION_SPEED;
 		
 
