@@ -199,9 +199,8 @@ class Maze
 			this.num_of_destroyed_tanks=0;
 			for(var i=0;i<this.tanks.length;i++){
 				this.tanks[i].restart();
-				
-				
 			}
+			this.powerups=[];
 
 		}
 
