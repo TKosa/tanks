@@ -13,14 +13,12 @@ class Pregame
 			this.settings = new SettingsPanel(this);
 			this.current_panels = [this.start_panel].concat(this.tank_panels);
 			
-		
 			this.colour_templates = ["Lime","cyan","darkorange","Red","Green","#0000FF"];
 			this.controls_templates = [
 			["ArrowUp","ArrowRight","ArrowDown","ArrowLeft","1","2"]
 			,["w","d","s","a","f","g"]
 			,["y","j",'h','g','k','l']
 			];
-
 		}
 
 
@@ -84,6 +82,7 @@ class Pregame
 	//Look through all elements to see if any of them were at the click location
 	onclick(x,y)
 		{
+
 			this.found_button=false; //local var to stop looking if we found our button
 			this.current_panels.forEach(function(panel)
 				{
@@ -93,7 +92,6 @@ class Pregame
 						if(!this.found_button)
 						if(doRectsOverlap([x,y,1,1],button.get_as_Rect()))
 							{
-						
 							this.found_button=true;
 							button.onclick();
 							}
@@ -202,7 +200,7 @@ class StartPanel extends Panel
 			{
 			var panel = this.tank_panels[i];
 			var cb = panel.buttons;
-			var controls = [cb[1].key, cb[2].key, cb[3].key, cb[4].key, cb[5].key, cb[6].key];
+			var controls = [cb[1].value, cb[2].value, cb[3].value, cb[4].value, cb[5].value, cb[6].value];
 			var rnd_pos = maze.getRandomSquare().getCenter();
 			
 			var tank = new Tank (0,0,maze,controls,panel.colour);
@@ -242,12 +240,31 @@ class Button
 	
 	draw()
 		{
-		ctx.fillStyle = "white";
-		ctx.fillRect(this.x,this.y,this.width,this.height);
-		ctx.fillStyle = "black";
-		ctx.textAlign = "center";
-		ctx.font = "10px Arial";
-		ctx.fillText(this.text,this.x+this.width/2,this.y+this.height/1.5);
+			if(this.panel.pregame.focus == this)
+				{
+				ctx.fillStyle = "red";
+				ctx.fillRect(this.x,this.y,this.width,this.height);	
+				}
+
+			else
+				{
+				ctx.fillStyle = "white";
+				ctx.fillRect(this.x,this.y,this.width,this.height);	
+				}
+
+			ctx.fillStyle = "white";
+			ctx.fillRect(this.x+2,this.y+2,this.width-4,this.height-4);
+				
+			ctx.fillStyle = "black";
+			ctx.textAlign = "center";
+			ctx.font = "10px Arial";
+
+			this.fill_text()
+		}
+
+	fill_text()
+		{
+			ctx.fillText(this.text.toString(),this.x+this.width/2,this.y+this.height/1.5);
 		}
 
 	center_horizontally()
@@ -292,17 +309,17 @@ class TankPanel extends Panel
 
 class SetControlsButton extends Button 
 	{
-	constructor(panel,x,y,text,default_key="")
+	constructor(panel,x,y,text,default_value="")
 		{
- 		super(panel,x,y,text+":");
+ 		super(panel,x,y,text+": ");
 		this.control=text+": "; //e.g. "attack"
-		this.key = default_key; //e.g. spacebar	
+		this.value = default_value; //e.g. spacebar	
 		this.panel.addButton(this);
 		}
 
 	keyDownHandler(key)
 		{
-		this.key=key;
+		this.value=key;
 		this.text = this.control + key;
 		}
 
@@ -311,38 +328,39 @@ class SetControlsButton extends Button
 		this.panel.pregame.focus = this;
 		}
 	
-	draw()
+	fill_text()
 		{
-
-		if(this.panel.pregame.focus == this)
-			{
-			ctx.fillStyle = "red";
-			ctx.fillRect(this.x,this.y,this.width,this.height);	
-			}
-
-		else
-			{
-			ctx.fillStyle = "white";
-			ctx.fillRect(this.x,this.y,this.width,this.height);	
-			}
-
-		ctx.fillStyle = "white";
-		ctx.fillRect(this.x+2,this.y+2,this.width-4,this.height-4);
-			
-		ctx.fillStyle = "black";
-		ctx.textAlign = "center";
-		ctx.font = "10px Arial";
-		ctx.fillText(this.key ? (this.control + this.key).toString() : this.control.toString() ,this.x+this.width/2,this.y+this.height/1.5);	
-
+			if(!this.value)	{var text = this.text.toString();} 
+			else 		 	{var text = this.text.toString() + this.value.toString();}
+			ctx.fillText(text,this.x+this.width/2,this.y+this.height/1.5);
 		}
 	}
 
 class SetSettingsButton extends SetControlsButton {
 
+	constructor(panel,x,y,text,default_value="",attribute_name)
+	 {
+	 	super(panel,x,y,text,default_value);
+	 	this.attribute_name=attribute_name;
+	 	this.value=this.panel.pregame.game[attribute_name].toString();
+	 	this.first_time_keypressed=true;
+	 }
+
 	keyDownHandler(key){
-		this.key+=key;
+		
+		if(key=="Backspace"){this.value=this.value.slice(0,-1);return;}
+		if(key=="Enter"){this.panel.pregame.focus = this.panel.back;return;}
+		if(this.first_time_keypressed)		{this.value=key;}
+		else 							 	{this.value+=key;}
+		this.first_time_keypressed=false;
 	}
 
+
+	onclick()
+		{
+		this.panel.pregame.focus = this;
+		this.first_time_keypressed=true;
+		}
 }
 
 class SettingsPanel extends Panel{
@@ -352,18 +370,6 @@ class SettingsPanel extends Panel{
 			super("Green");
 			this.width=canvas.width;
 			this.pregame=pregame;
-
-			//back button
-			var back = new Button(this,0,0,"Back");this.back=back;
-			back.y=canvas.height*5/6;
-			back.update();
-			back.onclick = function(){
-				var save_successful = this.save();
-				if (!save_successful){return;}
-				this.pregame.current_panels = [this.pregame.start_panel].concat(this.pregame.tank_panels);
-			}.bind(this);
-			this.addButton(back);
-
 		
 			//Create settings buttons
 			this.settings = [
@@ -377,54 +383,108 @@ class SettingsPanel extends Panel{
 			,["Duration of powerups (s)","powerup_duration"]
 			];
 			this.settings.forEach(function(ar){this.make_button(ar)}.bind(this));
-		
+			this.addBackButton();
 
 			//Position the buttons on the screen
 			var blen = this.buttons.length;
-			for(var i=1;i<blen;i++)
+			for(var i=0;i<blen;i++)
 				{
 					var button = this.buttons[i];
-					button.y = canvas.height*4/5/(blen-1)*(i-1)+button.height;
+					button.y = canvas.height*4/5/(blen-1)*(i)+button.height;
 					button.resize_horiontals();
 
 				}
 		}
 
+	addBackButton()
+		{
+
+			var back = new Button(this,0,0,"Back");
+			this.back=back;
+			back.y=canvas.height*5/6;
+			back.update();
+			back.onclick = function(){
+				var save_successful = this.save();
+				if (!save_successful){return;}
+				this.pregame.current_panels = [this.pregame.start_panel].concat(this.pregame.tank_panels);
+			}.bind(this);
+			back.keyDownHandler = function(key){
+				if (key=="Enter" && this.panel.pregame.focus==this){this.onclick();}
+			}
+			this.addButton(back);
+		}
+
+	//If save is successful return true, else return false 
 	save()
 		{
-			return true;
+			var back_button = this.back;
+			var buttons_that_must_be_posints=[0,1,4,6];
+			var buttons_that_must_be_posnumbers=[2,5,7];
+			
+			for(var i=0;i<buttons_that_must_be_posints.length;i++)
+				{
+					var button = this.buttons[buttons_that_must_be_posints[i]];
+					if (!this.isPosInt(button.value))
+						{
+							back_button.text="x must be positive Integer".replace("x",button.text).replace(":","");
+							return false;
+						}
+					button.panel.pregame.game[button.attribute_name] = button.value;
+				}
 
+			for(var i=0;i<buttons_that_must_be_posnumbers.length;i++)
+				{
+					var button = this.buttons[buttons_that_must_be_posnumbers[i]];
+					if (!this.isPosNumber(button.value))
+						{
+							back_button.text="x must be positive Integer".replace("x",button.text).replace(":","");
+							return false;
+						}
+				}
+
+			var friendly_fire_button = this.buttons[3];
+			this.pregame.game.friendly_fire = (friendly_fire_button.value=="true" ? true : false)
+
+			//Return to main screen and reset text of back_button
+			this.pregame.current_panels = [this.pregame.start_panel].concat(this.pregame.tank_panels);
+			back_button.text="Back";
 
 		}
-	isPosInt(x){
-		if(isNaN(x)){return false;}
-		if(!Number.isInteger(x) || x<0){return false;}
-		return true;
-	}
+
+
+	isPosInt(str)
+		{
+			if(isNaN(str)){return false;}
+			var number = parseFloat(str);
+			if(!Number.isInteger(number) || number<0){return false;}
+			return true;
+		}
+
+
+	isPosNumber(str)
+		{
+			if(isNaN(str)){return false;}
+			var number = parseFloat(str);
+			if(number<=0){return false;}
+			return true;
+
+		}
+
+
 	make_button(ar)
 		{	
 			//Make button a property of SettingsPanel and set its keydown and onclick
 			var text = ar[0];
 			var attribute_name = ar[1];
-			this[attribute_name]=new SetSettingsButton(this,0,0,text);
-			this[attribute_name].key=this.pregame.game[attribute_name].toString();
-			this[attribute_name].onclick = function(){
-				this.panel.pregame.focus=this;
-			};
-			this[attribute_name].keyDownHandler = function(key){
-				if(key=="Backspace"){this.key=this.key.slice(0,-1);return};
-				if(key=="Enter"){this.key="";return}
-				this.key+=key;
-			}
-
+			this[attribute_name]=new SetSettingsButton(this,0,0,text,"",attribute_name);
+			
 			//Corner case for friendly fire button 
 			if(ar[0]=="Friendly Fire")
 			{
-				this[attribute_name].onclick = function(){this.key= this.key ? false:true}
+				this[attribute_name].onclick = function(){
+					this.panel.pregame.focus=this;
+					this.value=="true" ? this.value="false":this.value="true"}
 			}
 		}
-
-
-
 	
 }

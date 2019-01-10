@@ -21,3 +21,4 @@ so getting calling nextNumber 16 times would result in 16 equally spaced numbers
 function nextColor(color){
 
 } 
+

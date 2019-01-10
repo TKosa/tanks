@@ -61,7 +61,7 @@ class Bullet{
 	handleTankCollisions(){
 		this.tank.maze.tanks.forEach(function(tank)
 			{
-			if(tank.is_dead==false && (tank!=this.tank || FRIENDLY_FIRE==true))
+			if(tank.is_dead==false && (tank!=this.tank || tank.maze.game.friendly_fire==true))
 				{
 				var bullet_rect=[this.x-this.radius,this.y-this.radius,this.radius*2,this.radius*2];
 				var tank_rect=[tank.x,tank.y,tank.width,tank.height];
