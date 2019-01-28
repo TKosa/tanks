@@ -16,8 +16,7 @@ class Bullet{
 		this.bounces=0;
 	}
 
-	main() 
-	{
+	main() {
 		this.handleMovement();
 		this.handleTankCollisions();
 		this.handlePowerupCollisions();

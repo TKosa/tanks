@@ -1,7 +1,6 @@
-class Powerup
-{
-	constructor(maze,x,y,effect_no)
-	{
+class Powerup{
+
+	constructor(maze,x,y,effect_no){
 		this.x=x;
 		this.y=y;
 		this.width=10;
@@ -98,19 +97,16 @@ class Powerup
 	}
 
 
-	draw()
-	{
+	draw(){
 		ctx.lineWidth=1;
 		ctx.strokeStyle=this.powerups[this.effect_no][1];
 		ctx.strokeRect(this.x,this.y,this.width,this.width);
-
 	}
 
 	onBulletHit(tank){
 		
 		this.maze.removePowerup(this);
 
-		
 		if(tank.powerup_timeout!=undefined){
 			tank.undo_powerup();
 			clearTimeout(tank.powerup_timeout);
