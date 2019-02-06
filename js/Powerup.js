@@ -52,12 +52,12 @@ class Powerup{
 						this.old_fire(rotation+Math.PI/12, speed);
 					}
 
-					tank.bullet_limit=3*BULLET_LIMIT;
+					tank.bullet_limit=3*game.bullet_limit;
 
 					tank.undo_powerup = function()
 					{
 						this.fire = this.old_fire; 
-						this.bullet_limit=BULLET_LIMIT;
+						this.bullet_limit=game.bullet_limit;
 					}
 				}
 				
@@ -85,6 +85,39 @@ class Powerup{
 				};
 			}
 			]
+
+			,["move through walls"
+			,"blue"
+			,function(tank)
+			{
+				tank.tryMovingTo=function(pos){
+					var x = pos[0];
+					var y = pos[1];
+
+					if(!this.maze.isOutOfBounds([x,y])){
+						this.x=x;
+						this.y=y;
+					}
+				}
+
+				tank.undo_powerup = function()
+				{
+					tank.tryMovingTo=function(pos){
+						var x = pos[0];
+						var y = pos[1];
+
+						if(!this.maze.doesRectCollide([x,y,this.width,this.height])){
+							this.x=x;
+							this.y=y;
+						}
+					}
+					var square = tank.maze.getSquareAtXY([tank.x,tank.y]);
+					tank.x=square.getCenter()[0];
+					tank.y=square.getCenter()[1];
+				};
+			}
+			]
+
 			
 		];
 
@@ -112,7 +145,7 @@ class Powerup{
 			clearTimeout(tank.powerup_timeout);
 		}
 	
-		tank.powerup_timeout=setTimeout(function(){tank.undo_powerup(); tank.powerup_timeout=undefined},POWERUP_DURATION);
+		tank.powerup_timeout=setTimeout(function(){tank.undo_powerup(); tank.powerup_timeout=undefined},game.powerup_duration*1000);
 
 		//Apply the powerup
 		this.powerups[this.effect_no][2](tank);

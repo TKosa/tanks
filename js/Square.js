@@ -87,6 +87,19 @@ class Square{
 
 		return walls;
 	}
+
+	hasActiveBorderWith(square){
+		
+		if(this.row==square.row){
+			if(this.col==square.col+1) {return this.west;}
+			if(this.col==square.col-1) {return this.east;}
+		}
+		if(this.col==square.col){
+			if(this.row==square.row+1){return this.north}
+			if(this.row==square.row-1){return this.south}
+		}
+		return false;
+	}
 	
 }
 

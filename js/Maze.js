@@ -28,7 +28,7 @@ class Maze {
 		this.squares=squares;
 
 		this.randomize();
-		setTimeout(this.addPowerupAndRepeat.bind(this),POWERUP_INTERVAL);
+		setTimeout(this.addPowerupAndRepeat.bind(this),game.powerup_interval);
 	}
 
 	main(){
@@ -38,35 +38,34 @@ class Maze {
 
 	draw(){
 
-	ctx.fillStyle="black";
+		ctx.fillStyle="black";
 
-	this.squares.forEach(function(row){row.forEach(function(square){square.draw();});});
-	this.tanks.forEach(function(tank){if(!tank.is_dead) tank.draw();});
-	this.powerups.forEach(function(powerup){powerup.draw();});
+		this.squares.forEach(function(row){row.forEach(function(square){square.draw();});});
+		this.tanks.forEach(function(tank){if(!tank.is_dead) tank.draw();});
+		this.powerups.forEach(function(powerup){powerup.draw();});
 
-	//Draw bottom panel
-	var x_padding = 5;
-	var y_padding = 2;
-	ctx.fillStyle = "#808080";
-	ctx.fillRect(0,canvas.height*4/5,canvas.width,canvas.height*1/5);
-	
-	ctx.fillRect(x_padding,canvas.height*4/5+y_padding,canvas.width-2*x_padding,canvas.height*1/5-4*y_padding);
-	ctx.font = "20px Verdana";
+		//Draw bottom panel
+		var x_padding = 5;
+		var y_padding = 2;
+		ctx.fillStyle = "#808080";
+		ctx.fillRect(0,canvas.height*4/5,canvas.width,canvas.height*1/5);
 		
-	for(var i=0; i<this.tanks.length;i++){
-		var tank = this.tanks[i];
-		var num_of_tanks = this.tanks.length;
-		ctx.fillStyle=tank.colour;
-		var x = i/Math.max(1,(num_of_tanks-1)) * (canvas.width-4*x_padding) + 2*x_padding  ;
-		var y = canvas.height*4/5+y_padding+15;	
-		
-		ctx.fillText(tank.score.toString(),x,y);
-	}
+		ctx.fillRect(x_padding,canvas.height*4/5+y_padding,canvas.width-2*x_padding,canvas.height*1/5-4*y_padding);
+		ctx.font = "20px Verdana";
+			
+		for(var i=0; i<this.tanks.length;i++){
+			var tank = this.tanks[i];
+			var num_of_tanks = this.tanks.length;
+			ctx.fillStyle=tank.colour;
+			var x = i/Math.max(1,(num_of_tanks-1)) * (canvas.width-4*x_padding) + 2*x_padding  ;
+			var y = canvas.height*4/5+y_padding+15;	
+			
+			ctx.fillText(tank.score.toString(),x,y);
+		}
 
-	ctx.font = "15px Verdana";
-	ctx.fillStyle = "black";
-	ctx.fillText(this.message, canvas.width/2, canvas.height-20);
-		
+		ctx.font = "15px Verdana";
+		ctx.fillStyle = "black";
+		ctx.fillText(this.message, canvas.width/2, canvas.height-20);		
 	}
 	
 
@@ -84,7 +83,7 @@ class Maze {
 		});
 
 		var entry_square=this.squares[0][0];
-		this.visit(new Square(this,-1,-1),this.getRandomSquare());
+		this.visit(this.getRandomSquare(),this.getRandomSquare());
 	}
 
 	//Used in randomize. Visiting square b from a means removing the border between a-b and visiting all unvisited neighbours (in a random order). 
@@ -156,7 +155,7 @@ class Maze {
 				var tank = this.tanks[i];
 				if(tank.is_dead==false){
 					tank.score+=1;
-					this.restart_helper(SECONDS_BETWEEN_ROUNDS);
+					this.restart_helper(game.seconds_between_rounds);
 					return;
 				}			
 			}		
@@ -218,6 +217,7 @@ class Maze {
 	}
 
 	onclick(x,y){}
+
 
 }
 	

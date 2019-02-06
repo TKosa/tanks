@@ -15,14 +15,15 @@ class Tank{
 		this.height=maze.height/maze.num_of_rows/3;
 		this.rotation=0; //pointing straight up
 		this.bullets=[];
-		this.bullet_limit=BULLET_LIMIT;
+		this.bullet_limit=game.bullet_limit;
+		this.bounce_limit=game.bounce_limit;
 		this.score=0;
 		this.is_dead=false;
 		
 
 		var o=this.maze.squares[0][0];
 		this.move_speed=maze.game.move_speed*Math.min(o.width,o.height)/60;
-		this.rotation_speed=ROTATION_SPEED;
+		this.rotation_speed=game.rotation_speed;
 		
 
 		this.upPressed=false;
@@ -41,7 +42,7 @@ class Tank{
 	main() {
 		if(this.is_dead){return;}
 
-		if(this.shouldFire()){ this.fire(this.rotation, BULLET_SPEED); }
+		if(this.shouldFire()){ this.fire(this.rotation, game.bullet_speed); }
 		this.shooting=false;
 
 		this.bullets.forEach(function(bullet){bullet.main();})
@@ -86,9 +87,10 @@ class Tank{
 	fire_helper(rotation, speed){
 
 		var x_vel = speed*Math.sin(rotation);
-		var y_vel = speed*-Math.cos(rotation);			//x,y _pos are at tip of the cannon
-		var x_pos = this.x+this.width/2 + Math.sin(this.rotation)*this.height;
-		var y_pos = this.y+this.height/2 + Math.cos(this.rotation)*-this.height;
+		var y_vel = speed*-Math.cos(rotation);			//x,y _pos are at base of the cannon (i.e. not the tip)
+		var x_pos = this.x+this.width/2 + Math.sin(this.rotation)*this.height/2;
+		var y_pos = this.y+this.height/2 + Math.cos(this.rotation)*-this.height/2;
+		
 		var new_bullet = new Bullet(this,[x_vel,y_vel],x_pos,y_pos);			
 		this.bullets.push(new_bullet);
 			
