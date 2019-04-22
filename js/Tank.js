@@ -184,15 +184,16 @@ class Tank{
 		this.shooting=false;
 
 		this.powerups.forEach(function(powerup){
-			powerup.tank.remove_powerup(powerup);
+			powerup.tank.removePowerup(powerup);
 		});
 	}
 
-	add_powerup(powerup){
+	addPowerup(powerup){
 		this.powerups.push(powerup);
 	}
-	remove_powerup(powerup){
+
+	removePowerup(powerup){
 		powerup.undo(this);
-		this.powerups.remove(powerup);
+		this.powerups.splice(this.powerups.indexOf(powerup),1);
 	}
 }

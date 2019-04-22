@@ -195,8 +195,7 @@ class Maze {
 			this.powerups.shift();
 		}	
 
-		var powerup = new Powerup(this,0,0,0);
-		powerup.randomize();
+		var powerup = generatePowerup(this);
 		this.placeObject(powerup);
 		this.addPowerup(powerup);
 		this.message = powerup.getMessage();	
