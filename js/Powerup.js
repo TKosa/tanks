@@ -1,19 +1,16 @@
 class Powerup{
 
-	constructor(maze,x,y,effect_no){
+	constructor(maze,x,y){
 		this.x=x;
 		this.y=y;
 		this.width=10;
 		this.height=10;
 		this.maze=maze;
-		this.effect_no = effect_no;
 	}
-
 
 	getMessage(){
 		return this.name;
 	}
-
 
 	draw(){
 		ctx.lineWidth=1;
@@ -25,21 +22,15 @@ class Powerup{
 		
 		this.maze.removePowerup(this);
 		this.tank=tank;
+		tank.removeAllPowerups();
+		tank.addPowerup(this);
 
-
-		//Undo other powerups this tank has
-		if(tank.powerup_timeout!=undefined){
-			tank.undo_powerup();
-			clearTimeout(tank.powerup_timeout);
-		}
-	
 		//Set the timer
 		this.timeout=setTimeout(function(){
 			this.tank.removePowerup(this); 
-			this.timeout=undefined
 		}.bind(this),game.powerup_duration*1000);
 
-		this.effect(tank);
+		
 	}
 }
 

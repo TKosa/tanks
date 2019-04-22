@@ -183,17 +183,24 @@ class Tank{
 		this.bullets=[];
 		this.shooting=false;
 
-		this.powerups.forEach(function(powerup){
-			powerup.tank.removePowerup(powerup);
-		});
+		this.clearAllPowerups();
 	}
 
 	addPowerup(powerup){
 		this.powerups.push(powerup);
+		powerup.effect(this);
 	}
 
 	removePowerup(powerup){
+		var index = this.powerups.indexOf(powerup);
+		if(index == -1){return;}
 		powerup.undo(this);
 		this.powerups.splice(this.powerups.indexOf(powerup),1);
+	}
+
+	removeAllPowerups(){
+		this.powerups.forEach(function(powerup){
+			powerup.tank.removePowerup(powerup);
+		});
 	}
 }
