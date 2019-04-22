@@ -10,6 +10,7 @@ class Tank{
 		this.colour=colour;
 		this.maze=maze;
 		maze.tanks.push(this);
+		this.powerups = [];
 
 		this.width=maze.width/maze.num_of_columns/3;
 		this.height=maze.height/maze.num_of_rows/3;
@@ -71,13 +72,11 @@ class Tank{
 			ctx.fillRect(-this.width/10,0,this.width/5,-this.height/1.2)
 		}
 		ctx.restore();
-		
 	}
 	
 	shouldFire(){
 		if (this.shooting && this.bullets.length<this.bullet_limit) {return true;}
 		else {return false;}
-	
 	}
 
 	fire(rotation,speed){
@@ -96,7 +95,6 @@ class Tank{
 			
 	}
 	
-
 	//Called every iteration of draw. Checks to see if buttons are pressed and moves tank accordingly.
 	handleMovement(){
 		var x=this.x;
@@ -118,7 +116,6 @@ class Tank{
 		if(this.leftPressed){this.rotation-=this.rotation_speed;}
 	}
 	
-
 	//Helper for handleMovement(). Tries to move the tank to x,y. Will fail if maze.doesRectCollide(tank) returns false.
 	tryMovingTo(pos){
 		var x = pos[0];
@@ -130,12 +127,10 @@ class Tank{
 		}
 	}
 	
-
 	keyPressHandler(e){
 		if(e.key == this.controls[4]){this.shooting=true;}
 	}
 	
-
 	keyDownHandler(e){
 
 		if(e.key == this.controls[0]){this.upPressed=true;}
@@ -144,7 +139,6 @@ class Tank{
 		if(e.key == this.controls[3]){this.leftPressed=true;}
 	}
 	
-
 	keyUpHandler(e){
 
 		if(e.key == this.controls[0]){this.upPressed=false;}
@@ -154,7 +148,6 @@ class Tank{
 
 	}
 	
-
 	loadImage(img_element){
 		this.img=img_element;
 	}
@@ -190,11 +183,16 @@ class Tank{
 		this.bullets=[];
 		this.shooting=false;
 
-		//Restart powerups
-		if(this.powerup_timeout!=undefined){
-			this.undo_powerup();
-			clearTimeout(tank.powerup_timeout);
-			this.powerup_timeout=undefined;
-		}
+		this.powerups.forEach(function(powerup){
+			powerup.tank.remove_powerup(powerup);
+		});
+	}
+
+	add_powerup(powerup){
+		this.powerups.push(powerup);
+	}
+	remove_powerup(powerup){
+		powerup.undo(this);
+		this.powerups.remove(powerup);
 	}
 }
