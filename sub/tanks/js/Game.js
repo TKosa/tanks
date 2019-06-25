@@ -15,11 +15,12 @@ class Game{
 		this.move_speed=3;
 		this.rotation_speed=9/100;
 		this.bullet_speed=3;
+		this.bullet_speed_limit_squared = (this.bullet_speed)**2
 		this.seconds_between_rounds = 3;
 		this.friendly_fire = false;
 		this.bullet_limit =7 ;
 		this.bounce_limit = 7;
-		this.powerup_interval = 5;
+		this.powerup_interval = 10;
 		this.powerup_limit = 7;
 		this.powerup_duration = 10;
 
